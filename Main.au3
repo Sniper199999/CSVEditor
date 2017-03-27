@@ -1,4 +1,4 @@
-;#AutoIt3Wrapper_Change2CUI=y
+﻿;#AutoIt3Wrapper_Change2CUI=y
 ;#pragma compile(Console, true)
 #pragma compile(Icon, "Images\csvedit.ico")
 #pragma compile(FileDescription, MBR CSV Editor - https://mybot.run)
@@ -19,6 +19,7 @@
 #include <EditConstants.au3>
 
 #cs
+	This is a test
 	All array elements detail:
 	$g_aLMenu[4][2] - This array contain the left menu labels and child GUI that go with it
 	$g_aLMenu[x][0] - Labels
