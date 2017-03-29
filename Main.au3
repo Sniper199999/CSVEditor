@@ -1,6 +1,6 @@
 ﻿;#AutoIt3Wrapper_Change2CUI=y
 ;#pragma compile(Console, true)
-#pragma compile(Icon, "Images\csveditor.ico")
+#pragma compile(Icon, "Images\csvedit.ico")
 #pragma compile(FileDescription, MBR CSV Editor - https://mybot.run)
 #pragma compile(ProductName, CSV Editor)
 #pragma compile(ProductVersion, 1.0)
@@ -33,21 +33,21 @@
 
 	$g_aMAKEInputs[7] - This array contain inputbox and combobox GUI elements of MAKE GUI
 
-	$aMAKEList[1][7] - This array is an unknown size 2D array (as we don't know how many vector the user will create so the size will increase as the user create more and more vectors) contain all vector's infos created by user in MAKE GUI
-	$aMAKEList[x][0] - Vector name
-	$aMAKEList[x][1] - Side
-	$aMAKEList[x][2] - Drop points
-	$aMAKEList[x][3] - Add tiles
-	$aMAKEList[x][4] - Direction
-	$aMAKEList[x][5] - Random X
-	$aMAKEList[x][6] - Random Y
+	$g_aMAKEList[1][7] - This array is an unknown size 2D array (as we don't know how many vector the user will create so the size will increase as the user create more and more vectors) contain all vector's infos created by user in MAKE GUI
+	$g_aMAKEList[x][0] - Vector name
+	$g_aMAKEList[x][1] - Side
+	$g_aMAKEList[x][2] - Drop points
+	$g_aMAKEList[x][3] - Add tiles
+	$g_aMAKEList[x][4] - Direction
+	$g_aMAKEList[x][5] - Random X
+	$g_aMAKEList[x][6] - Random Y
 #ce
 
 Global $g_sVersion = "v1.0"
-Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation ; All global Main GUI elements
-Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0 ; All global variables
-Dim $aMAKEList[1][7]
+Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7], $g_aDROPInputs[9], $g_aDROPCommand[2] ; All global array
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel ; All global Main GUI elements
+Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0, $g_iDROPListItem = 0 ; All global variables
+Dim $g_aMAKEList[1][7], $g_aDROPList[1][7]
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
@@ -114,25 +114,45 @@ createSubHeading("Now we will be create drop points so that MBR knows where it s
 $g_cMAKEListView = GUICtrlCreateListView("Vector|Drop Side|Drop Points|Add Tiles|Direction|Random X|Random Y", 20, 90, 550, 210)
 setListViewSize("MAKE", $g_cMAKEListView)
 ControlDisable($g_aLMenu[1][1], "", HWnd(_GUICtrlListView_GetHeader($g_cMAKEListView)))
-createMAKEInputs("Vector Name", 40, 320, 85, 0, "Input")
-createMAKEInputs("Drop Side", 40, 350, 85, 1, "List", "FRONT-RIGHT|FRONT-LEFT|LEFT-FRONT|LEFT-BACK|BACK-LEFT|BACK-RIGHT|RIGHT-BACK|RIGHT-FRONT")
-createMAKEInputs("Drop Points", 40, 380, 85, 2, "Input")
-createMAKEInputs("Add Tiles", 40, 410, 85, 3, "Input")
-createMAKEInputs("Drop Direction", 320, 320, 100, 4, "List", "INT-EXT|EXT-INT")
-createMAKEInputs("Random X-Axis", 320, 350, 100, 5, "Input")
-createMAKEInputs("Random Y-Axis", 320, 380, 100, 6, "Input")
+createVectorInputs("Vector Name", 40, 320, 85, 0, "Input", "MAKE")
+createVectorInputs("Drop Side", 40, 350, 85, 1, "List", "MAKE", "FRONT-RIGHT|FRONT-LEFT|LEFT-FRONT|LEFT-BACK|BACK-LEFT|BACK-RIGHT|RIGHT-BACK|RIGHT-FRONT")
+createVectorInputs("Drop Points", 40, 380, 85, 2, "Input", "MAKE")
+createVectorInputs("Add Tiles", 40, 410, 85, 3, "Input", "MAKE")
+createVectorInputs("Drop Direction", 320, 320, 100, 4, "List", "MAKE", "INT-EXT|EXT-INT")
+createVectorInputs("Random X-Axis", 320, 350, 100, 5, "Input", "MAKE")
+createVectorInputs("Random Y-Axis", 320, 380, 100, 6, "Input", "MAKE")
 $g_cMAKEBtnAdd = GUICtrlCreatePic("", 320, 415, 0, 0)
-GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.jpg")
+GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.bmp")
 $g_cMAKEBtnDel = GUICtrlCreatePic("", 440, 415, 0, 0)
-GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_1.jpg")
+GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_1.bmp")
 GUISetState(@SW_SHOW, $g_aLMenu[2][1])
 
 ;Child GUI (DROP)
 $g_aLMenu[3][1] = GUICreate("DROP", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Where do you want to drop your troops?")
 createSubHeading("From all of the vectors we have just created you can use them to drop your troops in.")
-createListView("DROP", $g_cMAKEListView, 210)
-
+$g_cDROPListView = GUICtrlCreateListView("Vector|Index|Drop Quantity|Troop Name|Delay Drop|Delay Change|Sleep After", 20, 90, 550, 210)
+setListViewSize("DROP", $g_cDROPListView)
+ControlDisable($g_aLMenu[3][1], "", HWnd(_GUICtrlListView_GetHeader($g_cDROPListView)))
+createVectorInputs("Vector Name", 20, 320, 85, 0, "List", "DROP")
+createVectorInputs("Drop Index", 20, 350, 85, 1, "Input", "DROP")
+createVectorInputs("Drop Quantity", 20, 380, 85, 2, "Input", "DROP")
+createVectorInputs("Troop Name", 20, 410, 85, 3, "List", "DROP", "Barbarian|Archer|Giant|Goblin|Wall Breaker|Balloon|Wizard|Ice Wizard|Healer|Dragon|Pekka|Baby Dragon|Miner|Minion|Hog Rider|Valkyrie|Golem|Witch|Lava Hound|Bowler|Barbarian King|Archer Queen|Grand Warden|Clan Castle|Lightning Spell|Heal Spell|Rage Spell|Jump Spell|Clone Spell|Freeze Spell|Poison Spell|Earthquake Spell|Haste Spell|Skeleton Spell")
+createVectorInputs("Delay Drop", 280, 320, 100, 4, "Input", "DROP")
+createVectorInputs("Delay Change", 280, 350, 100, 5, "Input", "DROP")
+createVectorInputs("Sleep After", 280, 380, 100, 6, "Input", "DROP")
+GUICtrlCreateLabel("Command:", 280, 410, 100, 20)
+GUICtrlSetFont(-1, 10, 400)
+$g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, $CBS_DROPDOWNLIST)
+GUICtrlSetData($g_aDROPInputs[7], "WAIT|RECALC")
+$g_aDROPInputs[8] = GUICtrlCreateInput("", 450, 410, 50, 20)
+$g_hDROPCommand = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
+GUICtrlSetState($g_aDROPInputs[7], $GUI_DISABLE)
+GUICtrlSetState($g_aDROPInputs[8], $GUI_DISABLE)
+$g_cDROPBtnAdd = GUICtrlCreatePic("", 530, 330, 0, 0)
+GUICtrlSetImage($g_cDROPBtnAdd, @ScriptDir & "\Images\iconAdd_1.bmp")
+$g_cDROPBtnDel = GUICtrlCreatePic("", 530, 370, 0, 0)
+GUICtrlSetImage($g_cDROPBtnDel, @ScriptDir & "\Images\iconDelete_1.bmp")
 GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 
 ;Child GUI (CSV Generating)
@@ -150,13 +170,20 @@ While 1
 		Case $g_hMainFrm
 			Switch $aGUIMsg[0] ; Now check for the messages for $g_hMainFrm
 				Case $GUI_EVENT_CLOSE
-					Exit
+					$iExit = MsgBox(36, "Unsaved csv", "Are you sure you want to quit? Any changes you made without saving will be lost")
+					If $iExit = 6 Then
+						ExitLoop
+					Else
+						Sleep(1)
+					EndIf
 
-				; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
+					;#cs
+					; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
 				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
 					For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
+					;#ce
 
 				Case $g_cBtnNext
 					BtnNextPressed()
@@ -182,19 +209,19 @@ While 1
 				Select
 					; These $aCursorInfo[4] cases are to check if the user hover on one of the buttons in MAKE GUI --> change button img
 					Case $aCursorInfo[4] = $g_cMAKEBtnAdd And $gBtnAddUnderCursor = False
-						GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_2.jpg")
+						GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_2.bmp")
 						$gBtnAddUnderCursor = True
 
 					Case $aCursorInfo[4] = $g_cMAKEBtnDel And $gBtnDelUnderCursor = False
-						GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_2.jpg")
+						GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_2.bmp")
 						$gBtnDelUnderCursor = True
 
 					Case $aCursorInfo[4] <> $g_cMAKEBtnAdd And $gBtnAddUnderCursor
-						GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.jpg")
+						GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.bmp")
 						$gBtnAddUnderCursor = False
 
 					Case $aCursorInfo[4] <> $g_cMAKEBtnDel And $gBtnDelUnderCursor
-						GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_1.jpg")
+						GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_1.bmp")
 						$gBtnDelUnderCursor = False
 
 					Case $aGUIMsg[0] = $g_cMAKEBtnAdd
@@ -204,9 +231,45 @@ While 1
 						DelMAKE()
 				EndSelect
 			EndIf
+		Case $g_aLMenu[3][1] ; Child GUI DROP
+			If Not @error Then
+				Select
+					Case $aGUIMsg[0] = $g_hDROPCommand
+						For $1 = 0 To UBound($g_aDROPInputs) - 1
+							If $1 = 7 Or $1 = 8 Then
+								_Enable($g_hDROPCommand, $g_aDROPInputs[$1])
+							Else
+								_Disable($g_hDROPCommand, $g_aDROPInputs[$1])
+							EndIf
+						Next
+
+					Case $aCursorInfo[4] = $g_cDROPBtnAdd And $gBtnAddUnderCursor = False
+						GUICtrlSetImage($g_cDROPBtnAdd, @ScriptDir & "\Images\iconAdd_2.bmp")
+						$gBtnAddUnderCursor = True
+
+					Case $aCursorInfo[4] = $g_cDROPBtnDel And $gBtnDelUnderCursor = False
+						GUICtrlSetImage($g_cDROPBtnDel, @ScriptDir & "\Images\iconDelete_2.bmp")
+						$gBtnDelUnderCursor = True
+
+					Case $aCursorInfo[4] <> $g_cDROPBtnAdd And $gBtnAddUnderCursor
+						GUICtrlSetImage($g_cDROPBtnAdd, @ScriptDir & "\Images\iconAdd_1.bmp")
+						$gBtnAddUnderCursor = False
+
+					Case $aCursorInfo[4] <> $g_cDROPBtnDel And $gBtnDelUnderCursor
+						GUICtrlSetImage($g_cDROPBtnDel, @ScriptDir & "\Images\iconDelete_1.bmp")
+						$gBtnDelUnderCursor = False
+
+					Case $aGUIMsg[0] = $g_cDROPBtnAdd
+						AddDROP()
+
+					Case $aGUIMsg[0] = $g_cDROPBtnDel
+						DelDROP()
+				EndSelect
+			EndIf
 	EndSwitch
 	Sleep(1)
 WEnd
+Exit
 #EndRegion Main Loop
 
 #Region Main GUI Functions
@@ -270,6 +333,7 @@ Func addHorizontalSeparator($x, $y, $w, $c)
 EndFunc   ;==>addHorizontalSeparator
 
 Func BtnNextPressed()
+	Local $nSwitch = 0
 	For $i = 0 To UBound($g_aLMenu, 1) - 1
 		If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
 			Switch $i
@@ -278,6 +342,7 @@ Func BtnNextPressed()
 					$aNOTESplit = StringSplit($sNOTERead, @CRLF, 3)
 					ReDim $g_aNOTE[UBound($aNOTESplit)]
 					$g_aNOTE = $aNOTESplit
+					$nSwitch = 1
 				Case 1
 					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
 						If IsChecked($g_aSIDEItem[$r][1]) Then
@@ -286,8 +351,24 @@ Func BtnNextPressed()
 							$g_aSIDEItem[$r][2] = ""
 						EndIf
 					Next
+					If $g_aSIDEItem[0][2] = "" And $g_aSIDEItem[1][2] = "" And $g_aSIDEItem[2][2] = "" And $g_aSIDEItem[3][2] = "" And $g_aSIDEItem[4][2] = "" And $g_aSIDEItem[5][2] = "" And $g_aSIDEItem[6][2] = "" And $g_aSIDEItem[7][2] = "" Then
+						MsgBox(16, "Error", "You have to check at least 1 condition so that MBR know which side to attack from.")
+					Else
+						$nSwitch = 1
+					EndIf
+				Case 2
+					If $g_aMAKEList[0][0] = "" Then
+						MsgBox(16, "Error", "You have to create at least 1 vector. Without vectors MBR will not know where to drop your troops.")
+					Else
+						For $1 = 0 To UBound($g_aMAKEList) - 1
+							GUICtrlSetData($g_aDROPInputs[0], $g_aMAKEList[$1][0])
+						Next
+						$nSwitch = 1
+					EndIf
 			EndSwitch
-			SwitchChildGUI($i + 1)
+			If $nSwitch Then
+				SwitchChildGUI($i + 1)
+			EndIf
 			;_ArrayDisplay($g_aSIDEItem, "$g_aSIDEItem")
 			ExitLoop
 		EndIf
@@ -327,6 +408,14 @@ Func _Enable($check, $input)
 	EndIf
 EndFunc   ;==>_Enable
 
+Func _Disable($check, $input)
+	If GUICtrlRead($check) = 1 Then
+		GUICtrlSetState($input, $GUI_DISABLE)
+	Else
+		GUICtrlSetState($input, $GUI_ENABLE)
+	EndIf
+EndFunc   ;==>_Disable
+
 Func createSIDEInputs($img, $s, $x, $y, $ar)
 	GUICtrlCreatePic(@ScriptDir & "\Images\" & $img, $x, $y, 50, 50)
 	GUICtrlCreateLabel($s & ":", $x + 60, $y + 10, 100, 15)
@@ -340,18 +429,6 @@ Func createSIDEInputs($img, $s, $x, $y, $ar)
 	$g_aSIDEItem[$ar][1] = GUICtrlCreateCheckbox("", $x + 165, $y + 25, 20, 20)
 	GUICtrlSetState($g_aSIDEItem[$ar][0], $GUI_DISABLE)
 EndFunc   ;==>createSIDEInputs
-
-Func createListView($name, $var, $h)
-	Switch $name
-		Case "MAKE"
-			Local $sHeaders = "Vector|Drop Side|Drop Points|Add Tiles|Direction|Random X|Random Y", $iArrayPos = 1
-		Case "DROP"
-			Local $sHeaders = "Vector|Index|Drop Quantity|Troop Name|Delay Drop|Delay Change|Sleep After", $iArrayPos = 2
-	EndSwitch
-	$var = GUICtrlCreateListView("Vector|Index|Drop Quantity|Troop Name|Delay Drop|Delay Change|Sleep After", 20, 90, 550, 210, $LVS_SORTASCENDING)
-	setListViewSize($name, $var)
-	ControlDisable($g_aLMenu[$iArrayPos][1], "", HWnd(_GUICtrlListView_GetHeader($var)))
-EndFunc   ;==>createListView
 
 Func setListViewSize($name, $var)
 	For $i = 0 To _GUICtrlListView_GetColumnCount($var) - 1
@@ -383,55 +460,70 @@ Func setListViewSize($name, $var)
 	Next
 EndFunc   ;==>setListViewSize
 
-Func createMAKEInputs($txt, $x, $y, $w, $ar, $field, $list = "")
+Func createVectorInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
 	GUICtrlCreateLabel($txt & ":", $x, $y, $w, 20)
 	GUICtrlSetFont(-1, 10, 400)
 	Switch $field
 		Case "Input"
-			$g_aMAKEInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
+			Switch $GUIname
+				Case "MAKE"
+					$g_aMAKEInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
+				Case "DROP"
+					$g_aDROPInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
+			EndSwitch
 		Case "List"
 			Local $aSplit = StringSplit($list, "|")
-			$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-			For $i = 1 To $aSplit[0]
-				GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
-			Next
+			Switch $GUIname
+				Case "MAKE"
+					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
+					For $i = 1 To $aSplit[0]
+						GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
+					Next
+				Case "DROP"
+					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
+					For $i = 1 To $aSplit[0]
+						GUICtrlSetData($g_aDROPInputs[$ar], $aSplit[$i])
+					Next
+			EndSwitch
 	EndSwitch
-EndFunc   ;==>createMAKEInputs
+EndFunc   ;==>createVectorInputs
 
 Func AddMAKE()
 	Local $aTempReadInputs[7]
 	For $i = 0 To UBound($aTempReadInputs) - 1
 		$aTempReadInputs[$i] = GUICtrlRead($g_aMAKEInputs[$i])
 	Next
-	Local $iSearchDuplicate = _ArraySearch($aMAKEList, $aTempReadInputs[0], 0, 0, 0, 0, 1, 0)
+	Local $iSearchDuplicate = _ArraySearch($g_aMAKEList, $aTempReadInputs[0], 0, 0, 0, 0, 1, 0)
 	If $aTempReadInputs[0] = "" Or $aTempReadInputs[1] = "" Or $aTempReadInputs[2] = "" Or $aTempReadInputs[3] = "" Or $aTempReadInputs[4] = "" Or $aTempReadInputs[5] = "" Or $aTempReadInputs[6] = "" Then
-		MsgBox(0, "Error", "You cannot leave a field empty!")
+		MsgBox(16, "Error", "You cannot leave a field empty!")
 	ElseIf Not @error Then
-		MsgBox(0, "Error", "Vector's name can not be duplicated!")
+		MsgBox(16, "Error", "Vector's name can not be duplicated!")
 	Else
 		$g_iMAKEListItem += 1
-		ReDim $aMAKEList[$g_iMAKEListItem][7]
-		For $i = 0 To UBound($aMAKEList, 2) - 1
-			$aMAKEList[$g_iMAKEListItem - 1][$i] = GUICtrlRead($g_aMAKEInputs[$i])
+		ReDim $g_aMAKEList[$g_iMAKEListItem][7]
+		For $i = 0 To UBound($g_aMAKEList, 2) - 1
+			$g_aMAKEList[$g_iMAKEListItem - 1][$i] = GUICtrlRead($g_aMAKEInputs[$i])
 		Next
-		ListViewRefresh($g_cMAKEListView, $aMAKEList)
+		ListViewRefresh($g_cMAKEListView, $g_aMAKEList, "MAKE")
 	EndIf
 EndFunc   ;==>AddMAKE
 
 Func DelMAKE()
 	$iIndex = _GUICtrlListView_GetSelectedIndices($g_cMAKEListView)
 	If $iIndex = "" Then
-		MsgBox(0, "Error", "Please select a vector to delete")
+		MsgBox(16, "Error", "Please select a vector to delete")
 	Else
-		_ArrayDelete($aMAKEList, $iIndex)
+		_ArrayDelete($g_aMAKEList, $iIndex)
 		$g_iMAKEListItem -= 1
-		ReDim $aMAKEList[$g_iMAKEListItem][7]
-		ListViewRefresh($g_cMAKEListView, $aMAKEList)
+		ReDim $g_aMAKEList[$g_iMAKEListItem][7]
+		ListViewRefresh($g_cMAKEListView, $g_aMAKEList, "MAKE")
 	EndIf
 EndFunc   ;==>DelMAKE
 
-Func ListViewRefresh($listviewhwnd, $array)
-	_ArraySort($array, 0, 0, 0, 0)
+Func ListViewRefresh($listviewhwnd, $array, $n)
+	If $n = "MAKE" Then
+		_ArraySort($array, 0, 0, 0, 0)
+	EndIf
 	_GUICtrlListView_DeleteAllItems($listviewhwnd)
 	_GUICtrlListView_AddArray($listviewhwnd, $array)
 EndFunc   ;==>ListViewRefresh
@@ -455,15 +547,86 @@ Func SelectSavePath()
 		$g_sSaveLocation = $sCurrentSaveLocation
 	EndIf
 	GUICtrlSetData($g_hSavePath, $g_sSaveLocation)
-EndFunc
+EndFunc   ;==>SelectSavePath
+
+Func AddDROP()
+	If IsChecked($g_hDROPCommand) Then
+		Local $aTempReadInputs[2]
+		$aTempReadInputs[0] = GUICtrlRead($g_aDROPInputs[7])
+		$aTempReadInputs[1] = GUICtrlRead($g_aDROPInputs[8])
+		If $aTempReadInputs[0] = "" And $aTempReadInputs[1] = "" Then
+			MsgBox(16, "Error", "Please select a command you would like to add.")
+		ElseIf $aTempReadInputs[0] = "WAIT" Then
+			If $aTempReadInputs[1] = "" Then
+				MsgBox(16, "Error", "Please enter how long do you want wait in Miliseconds (1s = 1000ms).")
+			Else
+				$g_iDROPListItem += 1
+				ReDim $g_aDROPList[$g_iDROPListItem][7]
+				For $1 = 0 To UBound($g_aDROPList, 2) - 1
+					If $1 > 1 Then
+						$g_aDROPList[$g_iDROPListItem - 1][$1] = ""
+					Else
+						$g_aDROPList[$g_iDROPListItem - 1][$1] = $aTempReadInputs[$1]
+					EndIf
+				Next
+				ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
+			EndIf
+		ElseIf $aTempReadInputs[0] = "RECALC" Then
+			$g_iDROPListItem += 1
+			ReDim $g_aDROPList[$g_iDROPListItem][7]
+			For $1 = 0 To UBound($g_aDROPList, 2) - 1
+				If $1 = 0 Then
+					$g_aDROPList[$g_iDROPListItem - 1][$1] = $aTempReadInputs[$1]
+				Else
+					$g_aDROPList[$g_iDROPListItem - 1][$1] = ""
+				EndIf
+			Next
+			ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
+		EndIf
+	Else
+		Local $aTempReadInputs[7]
+		For $i = 0 To UBound($aTempReadInputs) - 1
+			$aTempReadInputs[$i] = GUICtrlRead($g_aDROPInputs[$i])
+		Next
+		If $aTempReadInputs[0] = "" Or $aTempReadInputs[1] = "" Or $aTempReadInputs[2] = "" Or $aTempReadInputs[3] = "" Or $aTempReadInputs[4] = "" Or $aTempReadInputs[5] = "" Or $aTempReadInputs[6] = "" Then
+			MsgBox(16, "Error", "You cannot leave a field empty!")
+		Else
+			$g_iDROPListItem += 1
+			ReDim $g_aDROPList[$g_iDROPListItem][7]
+			For $i = 0 To UBound($g_aDROPList, 2) - 1
+				$g_aDROPList[$g_iDROPListItem - 1][$i] = $aTempReadInputs[$i]
+			Next
+			ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
+		EndIf
+	EndIf
+	For $r = 0 To UBound($g_aDROPList) - 1
+	ConsoleWrite("Row " & $r & ": ")
+	For $c = 0 To UBound($g_aDROPList, 2) - 1
+	ConsoleWrite(" " & $g_aDROPList[$r][$c] & " ")
+	Next
+	ConsoleWrite(@CRLF)
+	Next
+EndFunc   ;==>AddDROP
+
+Func DelDROP()
+	$iIndex = _GUICtrlListView_GetSelectedIndices($g_cDROPListView)
+	If $iIndex = "" Then
+		MsgBox(16, "Error", "Please select a vector to delete")
+	Else
+		_ArrayDelete($g_aDROPList, $iIndex)
+		$g_iDROPListItem -= 1
+		ReDim $g_aDROPList[$g_iDROPListItem][7]
+		ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
+	EndIf
+EndFunc   ;==>DelDROP
 #EndRegion Child GUI Functions
 
 #cs
-	For $r = 0 To UBound($aMAKEList) - 1
-		ConsoleWrite("Row " & $r & ": ")
-		For $c = 0 To UBound($aMAKEList, 2) - 1
-			ConsoleWrite(" " & $aMAKEList[$r][$c] & " ")
-		Next
-		ConsoleWrite(@CRLF)
+	For $r = 0 To UBound($g_aMAKEList) - 1
+	ConsoleWrite("Row " & $r & ": ")
+	For $c = 0 To UBound($g_aMAKEList, 2) - 1
+	ConsoleWrite(" " & $g_aMAKEList[$r][$c] & " ")
+	Next
+	ConsoleWrite(@CRLF)
 	Next
 #ce
