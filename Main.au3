@@ -20,6 +20,8 @@
 #include <FontConstants.au3>
 #include <String.au3>
 
+;Opt("MustDeclareVars", 1)
+
 #cs
 	This is a test
 	All array elements detail:
@@ -46,9 +48,11 @@
 
 Global $g_sVersion = "v1.0"
 Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7], $g_aDROPInputs[9], $g_aDROPCommand[2] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel ; All global Main GUI elements
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel, $g_hDROPCommandCheck ; All global Main GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0, $g_iDROPListItem = 0 ; All global variables
-Dim $g_aMAKEList[1][7], $g_aDROPList[1][7]
+Dim $g_aMAKEList[1][7], $g_aDROPList[1][7], $g_aNOTE[1]
+
+Local $cLMenuBG, $cBMenuBG
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
@@ -145,10 +149,10 @@ createVectorInputs("Delay Change", 280, 350, 100, 5, "Input", "DROP")
 createVectorInputs("Sleep After", 280, 380, 100, 6, "Input", "DROP")
 GUICtrlCreateLabel("Command:", 280, 410, 100, 20)
 GUICtrlSetFont(-1, 10, 400)
-$g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, $CBS_DROPDOWNLIST)
+$g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
 GUICtrlSetData($g_aDROPInputs[7], "WAIT|RECALC")
 $g_aDROPInputs[8] = GUICtrlCreateInput("", 450, 410, 50, 20)
-$g_hDROPCommand = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
+$g_hDROPCommandCheck = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
 GUICtrlSetState($g_aDROPInputs[7], $GUI_DISABLE)
 GUICtrlSetState($g_aDROPInputs[8], $GUI_DISABLE)
 $g_cDROPBtnAdd = GUICtrlCreatePic("", 530, 330, 0, 0)
@@ -180,11 +184,11 @@ While 1
 					EndIf
 
 					#cs
-					; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
-				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
-					For $i = 0 To UBound($g_aLMenu, 1) - 2
+						; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
+						Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
+						For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
-					Next
+						Next
 					#ce
 
 				Case $g_cBtnNext
@@ -236,12 +240,12 @@ While 1
 		Case $g_aLMenu[3][1] ; Child GUI DROP
 			If Not @error Then
 				Select
-					Case $aGUIMsg[0] = $g_hDROPCommand
+					Case $aGUIMsg[0] = $g_hDROPCommandCheck
 						For $1 = 0 To UBound($g_aDROPInputs) - 1
 							If $1 = 7 Or $1 = 8 Then
-								_Enable($g_hDROPCommand, $g_aDROPInputs[$1])
+								_Enable($g_hDROPCommandCheck, $g_aDROPInputs[$1])
 							Else
-								_Disable($g_hDROPCommand, $g_aDROPInputs[$1])
+								_Disable($g_hDROPCommandCheck, $g_aDROPInputs[$1])
 							EndIf
 						Next
 
@@ -430,7 +434,7 @@ Func createSIDEInputs($img, $s, $x, $y, $ar)
 	GUICtrlCreatePic(@ScriptDir & "\Images\" & $img, $x, $y, 50, 50)
 	GUICtrlCreateLabel($s & ":", $x + 60, $y + 10, 100, 15)
 	If $ar = 7 Then
-		$g_aSIDEItem[$ar][0] = GUICtrlCreateCombo("", $x + 60, $y + 25, 100, 20, $CBS_DROPDOWNLIST)
+		$g_aSIDEItem[$ar][0] = GUICtrlCreateCombo("", $x + 60, $y + 25, 100, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
 		GUICtrlSetData($g_aSIDEItem[$ar][0], "RANDOM|TOP-LEFT|TOP-RIGHT|BOTTOM-LEFT|BOTTOM-RIGHT")
 	Else
 		$g_aSIDEItem[$ar][0] = GUICtrlCreateInput("", $x + 60, $y + 25, 100, 20)
@@ -482,18 +486,15 @@ Func createVectorInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
 					$g_aDROPInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
 			EndSwitch
 		Case "List"
-			Local $aSplit = StringSplit($list, "|")
 			Switch $GUIname
 				Case "MAKE"
-					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
-					Next
+					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
+					GUICtrlSetData($g_aMAKEInputs[$ar], $list)
+					GUICtrlSendMsg($g_aMAKEInputs[$ar], $CB_SETMINVISIBLE, 10, 0)
 				Case "DROP"
-					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aDROPInputs[$ar], $aSplit[$i])
-					Next
+					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
+					GUICtrlSetData($g_aDROPInputs[$ar], $list)
+					GUICtrlSendMsg($g_aDROPInputs[$ar], $CB_SETMINVISIBLE, 10, 0)
 			EndSwitch
 	EndSwitch
 EndFunc   ;==>createVectorInputs
@@ -560,7 +561,7 @@ Func SelectSavePath()
 EndFunc   ;==>SelectSavePath
 
 Func AddDROP()
-	If IsChecked($g_hDROPCommand) Then
+	If IsChecked($g_hDROPCommandCheck) Then
 		Local $aTempReadInputs[2]
 		$aTempReadInputs[0] = GUICtrlRead($g_aDROPInputs[7])
 		$aTempReadInputs[1] = GUICtrlRead($g_aDROPInputs[8])
